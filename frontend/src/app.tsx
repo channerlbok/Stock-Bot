@@ -6,9 +6,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import Home from "./home";
-import Characters from "./characters";
-import Species from "./species";
-import Locations from "./locations";
+import User from "./user";
 
 // 1. Shared Layout Component with a Navigation Bar
 function Layout() {
@@ -23,10 +21,12 @@ function Layout() {
           paddingBottom: "10px",
         }}
       >
-        <Link to="/">Home</Link>
-        <Link to="/characters">Characters</Link>
-        <Link to="/species">Species</Link>
-        <Link to="/locations">Locations</Link>
+        <Link to='/'>
+          <h1>StockPile</h1>
+        </Link>
+        <Link to='/login'>
+          <img src='.\media\no-profile-picture-15257_128.png'></img>Login
+        </Link>
       </nav>
       <main>
         {/* The Outlet component dynamically renders the active child route */}
@@ -43,7 +43,7 @@ function NotFound() {
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>🚫 404 - Page Not Found</h1>
       <p>Sorry, the page you are looking for does not exist.</p>
-      <Link to="/">Return to Home</Link>
+      <Link to='/'>Return to Home</Link>
     </div>
   );
 }
@@ -59,16 +59,8 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "characters",
-        element: <Characters />,
-      },
-      {
-        path: "species",
-        element: <Species />,
-      },
-      {
-        path: "locations",
-        element: <Locations />,
+        path: "login",
+        element: <User />,
       },
     ],
   },
