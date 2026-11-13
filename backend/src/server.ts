@@ -2,7 +2,7 @@ import express from 'express';
 import { insertStock, listStocks } from './db';
 
 const app = express();
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.PORT ?? 3001);
 
 app.use(express.json());
 

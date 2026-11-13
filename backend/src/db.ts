@@ -15,7 +15,7 @@ db.exec(`
   );
 `);
 
-export const listStocks = db.prepare('SELECT symbol FROM stocks ORDER BY id');
+export const listStocks = db.prepare('SELECT symbol FROM stocks ORDER BY symbol');
 export const insertStock = db.prepare(
   'INSERT INTO stocks (symbol) VALUES (?) ON CONFLICT(symbol) DO NOTHING',
 );
