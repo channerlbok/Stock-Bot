@@ -1,4 +1,4 @@
-import { ReactElement,useState } from "react";
+import { ReactElement,useState,ChangeEvent  } from "react";
 
 export default function User():ReactElement {
   return (<>
@@ -13,7 +13,7 @@ function LogInForm():ReactElement {
     password: ''
   });
 
-    const handleChange = (e) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -21,7 +21,7 @@ function LogInForm():ReactElement {
     }));
   };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevents the page from refreshing
     console.log('Submitted Data:', formData);
   };
