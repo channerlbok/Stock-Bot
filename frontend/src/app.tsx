@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import Home from "./home";
 import User from "./user";
+import userImg from './media/no-profile-picture-15257_128.png';
 
 // 1. Shared Layout Component with a Navigation Bar
 function Layout() {
@@ -24,9 +25,11 @@ function Layout() {
         <Link to='/'>
           <h1>StockPile</h1>
         </Link>
-        <Link to='/login'>
-          <img src='.\media\no-profile-picture-15257_128.png'></img>Login
-        </Link>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link to='/login'>
+            <img src={userImg}></img>Login
+          </Link>
+        </div>
       </nav>
       <main>
         {/* The Outlet component dynamically renders the active child route */}
