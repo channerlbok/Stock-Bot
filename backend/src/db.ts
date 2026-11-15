@@ -28,7 +28,7 @@ db.exec(`
     close REAL NOT NULL,
     volume INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (symbol, trade_date)
+    PRIMARY KEY (symbol, trade_date),
     FOREIGN KEY (symbol) REFERENCES stocks(symbol)
     );
 `);
