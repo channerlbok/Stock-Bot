@@ -1,16 +1,32 @@
-import React from "react";
+import { Dispatch, SetStateAction,useState  } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
   Link,
   Outlet,
+  Path,
 } from "react-router-dom";
+import styles from './main.module.css';
 import Home from "./home";
 import User from "./user";
-import userImg from './media/no-profile-picture-15257_128.png';
+import emptyUserImage from './media/no-profile-picture-15257_128.png';
+
+interface UserData {
+  userName: string;
+  userImage: string;
+  // Option A: Standard React state setter type (allows functional updates like prev => ...)
+  updateUserData: Dispatch<SetStateAction<{ userName: string; userImage: string; }>>;
+  // Option B: Custom callback signature (cleaner if the child just sends a raw value)
+  // onUpdateMessage: (newText: string) => void;
+}
 
 // 1. Shared Layout Component with a Navigation Bar
 function Layout() {
+  const [UserData, updateUserData] = useState({
+      userName:'',
+      userImage: emptyUserImage
+    });
+
   return (
     <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
       <nav
@@ -25,13 +41,9 @@ function Layout() {
         <Link to='/'>
           <h1>StockPile</h1>
         </Link>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Link to='/login'>
-            <img src={userImg}></img>Login
-          </Link>
-        </div>
+        <LoginPage userName={UserData.userName} userImage={UserData.userImage} updateUserData={updateUserData}/>
       </nav>
-      <main>
+      <main className={styles.container}>
         {/* The Outlet component dynamically renders the active child route */}
         <Outlet />
       </main>
@@ -40,6 +52,26 @@ function Layout() {
 }
 
 // 2. Individual Page Components
+
+const LoginPage: React.FC<UserData> = ({ userName, userImage, updateUserData }) =>  {
+
+  if (userName==='') {
+    console.log('userName was empty');
+    return (<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link to='/login'>
+            <img src={userImage}></img>Login
+          </Link>
+        </div>);
+  } else {
+    console.log('userName was ' + userName);
+    //todo: update this to replace the userImage; otherwise the same right now
+    return (<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link to='/login'>
+            <img src={userImage}></img>{userName}
+          </Link>
+        </div>);
+  }
+}
 
 function NotFound() {
   return (

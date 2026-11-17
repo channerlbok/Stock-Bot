@@ -12,3 +12,8 @@
 
     Started adding some of the flavor text to the home page and fleshed out the user login page with a form.  Updated the log in link witha blank user picture.  Tried to play with the CSS file a bit to right justify the user long in link, but realized it was not being currently applied.  I will look into that later.
     about 60 minutes
+
+## 11-16-26
+
+    Did a pull request review for Jack's Branch.  Concerned that fetching it and pulling it to my current working project might have poisoned my local branch.  I guess I better get his pull request merged and then get mine merged ASAP so that I can bring my branch into sync with main.  implemented the CSS file by renaming it to main.module.css and importing it into the app and applying it on the correct element.  Might be a good Idea to make a nav.module.css and take all the inline css out of those elements and re-implement them there.  Also added a very basic readme.md with install and run instructions.  Created a UserData data type and made it a state varaible that can be passed around.  updated the Login link to show the user name if it is not ''.  Need to update the Login Page to set the userName and make a very basic "data" or "stocks" page that is only visible when the userName is not ''.  That is probably going to happen Wednesday.
+    about 60 minutes
