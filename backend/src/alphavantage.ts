@@ -10,20 +10,40 @@ export async function fetchStockData(symbol: string): Promise<StockPrice[]> {
     symbol,
     apikey: apiKey,
   });
-  const response = await fetch(`https://www.alphavantage.co/query?${params}`);
+  const response = await fetch(`https://www.alphavantage.co/query?${params}`,
+    { signal: AbortSignal.timeout(10_000) },
+  );
 
   if (!response.ok) {
-    throw new Error(`Alpha Vantage returned tst ${response.status}.`);
-  }
+    let message = 'Alpha Vantage returned an error.';
+    let status = 502;
 
+    if (response.status === 429) {
+      message = 'Stock data request limit reached. Please try again later.';
+      status = 503;
+    }
+
+    const error = new Error(message);
+    throw Object.assign(error, { status });
+  }
   const data = await response.json();
-  //console.error(data);
-  if (data['Information']) {
-    throw new Error(`Alpha Vantage rate limit: ${data['Information']}`);
+  const notice = data['Information'] || data['Note'];
+  
+  if (notice) {
+    let message = 'The stock data service could not fulfill the request. Please try again later.';
+    const rateLimitPattern = /rate limit|call frequency|requests per|calls per|limit.*(?:day|minute)/i;
+    const isRateLimited = rateLimitPattern.test(String(notice));
+
+    if (isRateLimited) {
+      message = 'Stock data request limit reached. Please try again later.';
+    }
+
+    const error = new Error(message);
+    throw Object.assign(error, { status: 503 });
   }
 
   if (!data['Monthly Time Series']) {
-    throw new Error('Alpha Vantage returned no monthly stock data.');
+    throw Object.assign(new Error('Alpha Vantage returned no monthly stock data.'), { status: 502 });
   }
 
   return transformStockData(data['Monthly Time Series'], symbol);

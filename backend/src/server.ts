@@ -1,5 +1,6 @@
 import express from 'express';
-import { fetchStockData } from './alphaVantage';
+import type { ErrorRequestHandler } from 'express';
+import { fetchStockData } from './alphavantage';
 import {
   getStockPrices,
   insertStock,
@@ -37,7 +38,7 @@ app.post('/api/stocks', (req, res) => {
 });
 
 // stock_prices operations
-app.get('/api/stocks/:symbol/prices', async (req, res) => {
+app.get('/api/stocks/:symbol/prices', async (req, res, next) => {
   const symbol = req.params.symbol.trim().toUpperCase();
   // Check to see if symbol already exists with stock prices before fetching.
   try {
@@ -68,11 +69,41 @@ app.get('/api/stocks/:symbol/prices', async (req, res) => {
     console.log(`Successfully loaded ${rows.length} prices for ${symbol}.`);
     res.json(rows);
   } catch (error) {
-    // Not a success
-    console.error(error);
-    res.status(500).json({ error: 'Unable to load stock prices.' });
+    next(error);
   }
 });
+
+const jsonErrorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+  if (error.name === 'TimeoutError') {
+    res.status(504).json({ error: 'The stock data service took too long to respond.' });
+    return;
+  }
+
+  if (error instanceof Error && 'status' in error && (error.status === 502 || error.status === 503)) {
+    console.error(error);
+    res.status(error.status).json({ error: error.message });
+    return;
+  }
+
+  if (error.type === 'entity.parse.failed') {
+    res.status(400).json({ error: 'Invalid JSON request body.' });
+    return;
+  }
+
+  if (error.type === 'entity.too.large') {
+    res.status(413).json({ error: 'The request body is too large.' });
+    return;
+  }
+
+  console.error(error);
+  res.status(500).json({ error: 'Unable to process the request.' });
+};
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API route not found.' });
+});
+
+app.use(jsonErrorHandler);
 
 app.listen(port, () => {
   console.log(`Backend running at http://localhost:${port}`);
