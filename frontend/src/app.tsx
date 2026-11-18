@@ -1,30 +1,24 @@
-import { Dispatch, SetStateAction,useState  } from "react";
+import { ReactElement, useState  } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
   Link,
+  useLocation,
   Outlet,
-  Path,
 } from "react-router-dom";
+import { UserState } from './globals.d';
 import styles from './main.module.css';
 import Home from "./home";
-import User from "./user";
+import Login from "./login";
 import emptyUserImage from './media/no-profile-picture-15257_128.png';
-
-interface UserData {
-  userName: string;
-  userImage: string;
-  // Option A: Standard React state setter type (allows functional updates like prev => ...)
-  updateUserData: Dispatch<SetStateAction<{ userName: string; userImage: string; }>>;
-  // Option B: Custom callback signature (cleaner if the child just sends a raw value)
-  // onUpdateMessage: (newText: string) => void;
-}
 
 // 1. Shared Layout Component with a Navigation Bar
 function Layout() {
-  const [UserData, updateUserData] = useState({
-      userName:'',
-      userImage: emptyUserImage
+  const location = useLocation();
+  const incomingState = location.state as UserState | null;
+  const [userData, setUserData] = useState<UserState>({
+      userName: incomingState?.userName ?? '',
+      userImage: incomingState?.userImage ?? emptyUserImage
     });
 
   return (
@@ -41,7 +35,7 @@ function Layout() {
         <Link to='/'>
           <h1>StockPile</h1>
         </Link>
-        <LoginPage userName={UserData.userName} userImage={UserData.userImage} updateUserData={updateUserData}/>
+        <LoginPage userName={userData.userName} userImage={userData.userImage}/>
       </nav>
       <main className={styles.container}>
         {/* The Outlet component dynamically renders the active child route */}
@@ -53,21 +47,26 @@ function Layout() {
 
 // 2. Individual Page Components
 
-const LoginPage: React.FC<UserData> = ({ userName, userImage, updateUserData }) =>  {
+function LoginPage({userName,userImage} :UserState ): ReactElement {
+  const location = useLocation();
+  const incomingState = location.state as UserState | null;
+  const [userData, setUserData] = useState<UserState>({
+      userName: incomingState?.userName ?? '',
+      userImage: incomingState?.userImage ?? emptyUserImage
+    });
 
-  if (userName==='') {
+  if (userData.userName==='') {
     console.log('userName was empty');
     return (<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Link to='/login'>
-            <img src={userImage}></img>Login
+          <Link to='/login' state={ userData }>
+            <img src={userData.userImage}></img>Login
           </Link>
         </div>);
   } else {
-    console.log('userName was ' + userName);
-    //todo: update this to replace the userImage; otherwise the same right now
+    console.log('userName was ' + userData.userName);
     return (<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Link to='/login'>
-            <img src={userImage}></img>{userName}
+          <Link to='/account'>
+            <img src={userData.userImage}></img>{userData.userName}
           </Link>
         </div>);
   }
@@ -95,8 +94,8 @@ const router = createBrowserRouter([
       },
       {
         path: "login",
-        element: <User />,
-      },
+        element: <Login />,
+      }
     ],
   },
   {
