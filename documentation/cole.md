@@ -25,3 +25,9 @@
     I came back to this after dinner and managed to get the app to render, and navigate to, the Login page.  However, it appears that the userState does not get passed back correctly.  I think this is because the actual link that gets called is "/" in useNavigate which leads to index.tsx, not directly to app.tsx.  Which means I either need to implement another layer of State Passing, turn this into a Context, or rewrite this to not pass to individual links, but instead render all inside one app.  I am thinking rendering inside one app is the right way to go since it would be more secure and prevent direct access to elemnts of the applications from outside.  REgardless, this is demoralizing to find out one day before I am supposed to make a PR for the other teammates to review and then merge.  I am going to step away and let my mind clear again before making a final decision.  Maybe I will post this question to the groups as well.
     about 45 minutes.
     made a PR so taht the group could pitch in on whether or not this is the right direction to proceed in.  lines of code written at this point = 501
+
+## 11-18-26
+
+    made use of Channer's suggestions regarding context and specificaly the conext tag on teh Outlet element and got all the things working as desired.  Truly a momentous occasion.  Udpated the PR and messaged the team in discord.
+    about 90 minutes.
+    lines of code at

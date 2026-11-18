@@ -1,24 +1,26 @@
-import { ReactElement, useState  } from "react";
+import { ReactElement, useState, useContext  } from "react";
 import {
   createBrowserRouter,
   RouterProvider,
   Link,
   useLocation,
   Outlet,
+  useOutletContext 
 } from "react-router-dom";
-import { UserState } from './globals.d';
+import { UserState,UserContext } from './UserContext';
 import styles from './main.module.css';
 import Home from "./home";
 import Login from "./login";
+import Stocks from "./stocks";
 import emptyUserImage from './media/no-profile-picture-15257_128.png';
+import Account from "./account";
+
 
 // 1. Shared Layout Component with a Navigation Bar
 function Layout() {
-  const location = useLocation();
-  const incomingState = location.state as UserState | null;
   const [userData, setUserData] = useState<UserState>({
-      userName: incomingState?.userName ?? '',
-      userImage: incomingState?.userImage ?? emptyUserImage
+      userName: '',
+      userImage: emptyUserImage
     });
 
   return (
@@ -35,26 +37,35 @@ function Layout() {
         <Link to='/'>
           <h1>StockPile</h1>
         </Link>
-        <LoginPage userName={userData.userName} userImage={userData.userImage}/>
+        <UserContext value={userData}>
+          <StockLink />
+          <LoginLInk />
+        </UserContext>
       </nav>
       <main className={styles.container}>
         {/* The Outlet component dynamically renders the active child route */}
-        <Outlet />
+        <Outlet context={{ userData, setUserData }}/>
       </main>
     </div>
   );
 }
 
 // 2. Individual Page Components
+function StockLink(): ReactElement {
+  const userData = useContext(UserContext);
+  if (userData.userName==='') {
+    return (<h3>Stocks</h3>);
+  } else {
+    return (<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link to='/stocks'>
+            <h3>Stocks</h3>
+          </Link>
+        </div>);
+  }
+}
 
-function LoginPage({userName,userImage} :UserState ): ReactElement {
-  const location = useLocation();
-  const incomingState = location.state as UserState | null;
-  const [userData, setUserData] = useState<UserState>({
-      userName: incomingState?.userName ?? '',
-      userImage: incomingState?.userImage ?? emptyUserImage
-    });
-
+function LoginLInk(): ReactElement {
+  const userData = useContext(UserContext);
   if (userData.userName==='') {
     console.log('userName was empty');
     return (<div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -95,6 +106,14 @@ const router = createBrowserRouter([
       {
         path: "login",
         element: <Login />,
+      },
+      {
+        path: "account",
+        element: <Account />,
+      },
+      {
+        path: "stocks",
+        element: <Stocks />,
       }
     ],
   },

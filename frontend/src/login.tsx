@@ -1,26 +1,21 @@
-import { ReactElement,useState,ChangeEvent  } from "react";
-import { useLocation,useNavigate  } from "react-router-dom";
-import { UserState } from './globals.d';
-import emptyUserImage from './media/no-profile-picture-15257_128.png';
-
-
+import { ReactElement,useState,ChangeEvent,useContext  } from "react";
+import { useLocation,useNavigate,useOutletContext  } from "react-router-dom";
+import { UserState,UserContext } from './UserContext';
 
 export default function Login(): ReactElement  {
-  const location = useLocation();
-  const incomingState = location.state as UserState | null;
-  const [userData, setUserData] = useState<UserState>({
-        userName: incomingState?.userName ?? '',
-        userImage: incomingState?.userImage ?? emptyUserImage
-      });
 
   return (<>
   <h1>User Log In</h1>
-  <LogInForm userName={userData.userName} userImage={userData.userImage} />
+  <LogInForm />
   </>);
 }
 
-function LogInForm({userName,userImage} :UserState):ReactElement {
+function LogInForm():ReactElement {
   const navigate = useNavigate();
+  const {userData,setUserData} = useOutletContext();
+  const updateUserData = (newUserName) => {
+      setUserData({userName : newUserName,userImage : userData.userImage});
+    }
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -38,8 +33,8 @@ function LogInForm({userName,userImage} :UserState):ReactElement {
     e.preventDefault(); // Prevents the page from refreshing
     console.log('Submitted Data:', formData);
     //TODO: This is a stub for an actual API call to be implemented later
-    userName=formData.username;
-    navigate('/',{state:{ userName,userImage }});
+    updateUserData(formData.username);
+    navigate('/',{});
     //end stub
   };
 
