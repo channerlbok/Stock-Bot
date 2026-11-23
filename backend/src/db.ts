@@ -31,6 +31,17 @@ db.exec(`
     PRIMARY KEY (symbol, trade_date),
     FOREIGN KEY (symbol) REFERENCES stocks(symbol)
     );
+
+    -- Table for custom portfolio
+    PRAGMA busy_timeout = 5000;
+    CREATE TABLE IF NOT EXISTS custom_portfolio (
+    symbol TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (symbol) REFERENCES stocks(symbol)
+    );
+
+
+
 `);
 
 // Operations on stocks
@@ -54,3 +65,15 @@ export const insertStockPrice = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (symbol, trade_date) DO NOTHING
   
   `);
+
+// Operations on custom_portfolio
+export const listCustomPortfolio = db.prepare(`
+  SELECT symbol 
+  FROM custom_portfolio ORDER BY symbol`);
+
+export const insertCustomPortfolio = db.prepare(`
+  INSERT INTO custom_portfolio (symbol) 
+  VALUES (?) ON CONFLICT(symbol) DO NOTHING`);
+
+export const deleteCustomPortfolio = db.prepare(`
+  DELETE FROM custom_portfolio WHERE symbol = ?`);

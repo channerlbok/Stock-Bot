@@ -3,15 +3,85 @@ import type { ErrorRequestHandler } from 'express';
 import { fetchStockData } from './alphavantage';
 import {
   getStockPrices,
+  insertCustomPortfolio,
   insertStock,
   insertStockPrice,
   listStocks,
+  listCustomPortfolio,
+  deleteCustomPortfolio,
 } from './db';
 
 const app = express();
 const port = Number(process.env.PORT ?? 3001);
 
 app.use(express.json());
+
+// custom portfolio operations
+app.get('/api/custom-portfolio', (_req, res) => {
+  const portfolio = listCustomPortfolio.all();
+  res.json(portfolio);
+});
+
+app.post('/api/custom-portfolio', async (req, res, next) => {
+  const symbol = req.body?.symbol;
+
+  if (typeof symbol !== 'string' || !symbol.trim()) {
+    res.status(400).json({ error: 'A stock symbol is required.' });
+    return;
+  }
+
+  const normalizedSymbol = symbol.trim().toUpperCase();
+
+  try {
+    insertStock.run(normalizedSymbol);
+
+    const existingPrices = getStockPrices.all(normalizedSymbol);
+
+    if (existingPrices.length === 0) {
+      const rows = await fetchStockData(normalizedSymbol);
+
+      for (const row of rows) {
+        insertStockPrice.run(
+          row.symbol,
+          row.trade_date,
+          row.open,
+          row.high,
+          row.low,
+          row.close,
+          row.volume,
+        );
+      }
+    }
+
+    const result = insertCustomPortfolio.run(normalizedSymbol);
+
+    if (result.changes === 0) {
+      res.status(409).json({
+        error: 'This stock is already in your portfolio.',
+      });
+      return;
+    }
+
+    res.status(201).json({ symbol: normalizedSymbol });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/custom-portfolio/:symbol', (req, res) => {
+  const symbol = req.params.symbol.trim().toUpperCase();
+  const result = deleteCustomPortfolio.run(symbol);
+
+  if (result.changes === 0) {
+    res.status(404).json({
+      error: 'This stock is not in your portfolio.',
+    });
+    return;
+  }
+
+  res.status(204).send();
+});
+
 // stock operations
 app.get('/api/stocks', (_req, res) => {
   res.json(listStocks.all());
@@ -75,11 +145,17 @@ app.get('/api/stocks/:symbol/prices', async (req, res, next) => {
 
 const jsonErrorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (error.name === 'TimeoutError') {
-    res.status(504).json({ error: 'The stock data service took too long to respond.' });
+    res
+      .status(504)
+      .json({ error: 'The stock data service took too long to respond.' });
     return;
   }
 
-  if (error instanceof Error && 'status' in error && (error.status === 502 || error.status === 503)) {
+  if (
+    error instanceof Error &&
+    'status' in error &&
+    (error.status === 502 || error.status === 503)
+  ) {
     console.error(error);
     res.status(error.status).json({ error: error.message });
     return;
