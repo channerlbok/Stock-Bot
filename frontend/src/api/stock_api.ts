@@ -1,34 +1,28 @@
-const baseURL : string = "https://rickandmortyapi.com";
-
-export async function getStock(ticker:string) {
-  let url = new URL(baseURL);
-  const headers = new Headers();
-  headers.set('Content-Type', 'application/json');
-  headers.append('Authorization', 'Bearer YOUR_TOKEN');
-headers.append('Ticker', ticker);
-headers.append('Action', 'get');
-  return await makeAPIcall(url,headers);
+export interface StockPrice {
+  symbol: string;
+  trade_date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
 }
 
-async function makeAPIcall(url:URL,headers:Headers) {
-  try {
-    const response = await fetch(url,{ method: 'POST', headers});
- 
-    // Check if the HTTP status code is OK (200-299)
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+export async function getStock(ticker: string): Promise<StockPrice[]> {
+  const symbol = ticker.trim().toUpperCase();
 
-    // Parse the data as JSON
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    if (error instanceof Error) {
-    console.error("Fetch failed:", error.message);
-  } else {
-    console.error("Unexpected non-error thrown:", String(error));
+  if (!symbol) {
+    throw new Error('Please enter a valid stock symbol.');
   }
-    
-    return null;
+
+  const response = await fetch(
+    `/api/stocks/${encodeURIComponent(symbol)}/prices`,
+  );
+
+  if (!response.ok) {
+    const body = await response.json();
+    throw new Error(body.error || 'Failed to fetch stock prices.');
   }
+
+  return await response.json();
 }
