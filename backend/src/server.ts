@@ -1,7 +1,10 @@
 import express from 'express';
 import type { ErrorRequestHandler } from 'express';
 import { fetchStockData } from './alphavantage';
+import { calculateStatistics } from './analytics';
+import { isValidDate } from './dateValidation';
 import {
+  getStockAnalyticsPrices,
   getStockPrices,
   insertCustomPortfolio,
   insertStock,
@@ -105,6 +108,52 @@ app.post('/api/stocks', (req, res) => {
 
   const stock = { symbol: normalizedSymbol };
   res.status(201).json(stock);
+});
+
+// Statistics from saved monthly prices.
+app.get('/api/stocks/:symbol/statistics', (req, res) => {
+  const symbol = req.params.symbol.trim().toUpperCase();
+  const { from, to } = req.query;
+
+  if (from !== undefined && !isValidDate(from)) {
+    res.status(400).json({ error: 'The from date must be a valid date in YYYY-MM-DD format.' });
+    return;
+  }
+
+  if (to !== undefined && !isValidDate(to)) {
+    res.status(400).json({ error: 'The to date must be a valid date in YYYY-MM-DD format.' });
+    return;
+  }
+
+  if (typeof from === 'string' && typeof to === 'string' && from > to) {
+    res.status(400).json({ error: 'The from date must be on or before the to date.' });
+    return;
+  }
+
+  const startDate = typeof from === 'string' ? from : null;
+  const endDate = typeof to === 'string' ? to : null;
+  const rows = getStockAnalyticsPrices.all(
+    symbol,
+    startDate,
+    startDate,
+    endDate,
+    endDate,
+  );
+
+  if (rows.length === 0) {
+    res.status(404).json({ error: 'No saved prices were found for this symbol and date range.' });
+    return;
+  }
+
+  const prices = rows.map((row) => ({
+    trade_date: String(row.trade_date),
+    close: Number(row.close),
+    high: Number(row.high),
+    low: Number(row.low),
+    volume: Number(row.volume),
+  }));
+
+  res.json({ symbol, interval: 'monthly', ...calculateStatistics(prices) });
 });
 
 // stock_prices operations
