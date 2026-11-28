@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx --test tests/analytics.test.ts tests/dateValidation.test.ts"
   },
   "keywords": [],
   "author": "",

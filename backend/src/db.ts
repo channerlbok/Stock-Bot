@@ -59,6 +59,16 @@ export const getStockPrices = db.prepare(`
   WHERE symbol = ?
   ORDER by trade_date`);
 
+// Saved monthly prices within the requested date range.
+export const getStockAnalyticsPrices = db.prepare(`
+  SELECT trade_date, close, high, low, volume
+  FROM stock_prices
+  WHERE symbol = ?
+    AND (? IS NULL OR trade_date >= ?)
+    AND (? IS NULL OR trade_date <= ?)
+  ORDER BY trade_date
+`);
+
 export const insertStockPrice = db.prepare(`
   INSERT INTO stock_prices
     (symbol, trade_date, open, high, low, close, volume)
